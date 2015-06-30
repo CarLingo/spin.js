@@ -41,6 +41,10 @@
   else root.Spinner = factory()
 }(this, function () {
   "use strict"
+  var canUseDOM = !!(
+    (typeof window !== 'undefined' &&
+    window.document && window.document.createElement)
+  );
 
   var prefixes = ['webkit', 'Moz', 'ms', 'O'] /* Vendor prefixes */
     , animations = {} /* Animation rules keyed by their name */
@@ -52,6 +56,7 @@
    * a DIV is created. Optionally properties can be passed.
    */
   function createEl (tag, prop) {
+    if (!canUseDOM) return;
     var el = document.createElement(tag || 'div')
       , n
 
@@ -63,6 +68,7 @@
    * Appends children and returns the parent.
    */
   function ins (parent /* child1, child2, ...*/) {
+    if (!canUseDOM) return;
     for (var i = 1, n = arguments.length; i < n; i++) {
       parent.appendChild(arguments[i])
     }
@@ -76,6 +82,7 @@
    * we create separate rules for each line/segment.
    */
   function addAnimation (alpha, trail, i, lines) {
+    if (!canUseDOM) return;
     var name = ['opacity', trail, ~~(alpha * 100), i, lines].join('-')
       , start = 0.01 + i/lines * 100
       , z = Math.max(1 - (1-alpha) / trail * (100-start), alpha)
@@ -102,6 +109,7 @@
    * Tries various vendor prefixes and returns the first supported property.
    */
   function vendor (el, prop) {
+    if (!canUseDOM) return;
     var s = el.style
       , pp
       , i
@@ -118,6 +126,8 @@
    * Sets multiple style properties at once.
    */
   function css (el, prop) {
+    
+    if (!canUseDOM) return;
     for (var n in prop) {
       el.style[vendor(el, n) || n] = prop[n]
     }
@@ -172,6 +182,7 @@
 
   /** The constructor */
   function Spinner (o) {
+    if (!canUseDOM) return;
     this.opts = merge(o || {}, Spinner.defaults, defaults)
   }
 
@@ -185,6 +196,7 @@
      * stop() internally.
      */
     spin: function (target) {
+      if (!canUseDOM) return;
       this.stop()
 
       var self = this
@@ -233,6 +245,7 @@
      * Stops and removes the Spinner.
      */
   , stop: function () {
+      if (!canUseDOM) return;
       var el = this.el
       if (el) {
         clearTimeout(this.timeout)
@@ -247,6 +260,7 @@
      * in VML fallback mode below.
      */
   , lines: function (el, o) {
+      if (!canUseDOM) return;
       var i = 0
         , start = (o.lines - 1) * (1 - o.direction) / 2
         , seg
@@ -284,6 +298,7 @@
      * Will be overwritten in VML fallback mode below.
      */
   , opacity: function (el, i, val) {
+      if (!canUseDOM) return;
       if (i < el.childNodes.length) el.childNodes[i].style.opacity = val
     }
 
@@ -291,6 +306,7 @@
 
 
   function initVML () {
+      if (!canUseDOM) return;
 
     /* Utility function to create a VML tag */
     function vml (tag, attr) {
@@ -350,6 +366,7 @@
     }
 
     Spinner.prototype.opacity = function (el, i, val, o) {
+      if (!canUseDOM) return;
       var c = el.firstChild
       o = o.shadow && o.lines || 0
       if (c && i + o < c.childNodes.length) {
@@ -359,7 +376,7 @@
     }
   }
 
-  if (typeof document !== 'undefined') {
+  if (canUseDOM) {
     sheet = (function () {
       var el = createEl('style', {type : 'text/css'})
       ins(document.getElementsByTagName('head')[0], el)
